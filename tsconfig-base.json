@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json.schemastore.org/tsconfig",
+    "$title": "基础配置",
+    "include": ["./*.js", "./src/**/*.ts"],
+    "compilerOptions": {
+        "allowJs": false,
+        "strictNullChecks": true,
+        "moduleResolution": "Node",
+        "downlevelIteration": true,
+        "module": "ESNext",
+        "target": "es2016",
+        "types": [],
+        "typeRoots": []
+    }
+}
