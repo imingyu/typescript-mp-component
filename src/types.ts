@@ -1,19 +1,5 @@
 export type AnyFunction = (...args: any[]) => any;
 
-/** 小程序页面resize信息 */
-export interface MpPageResizeInfo {
-    /** 设备方向, portrait=竖屏，landscape=横屏 */
-    deviceOrientation: 'portrait' | 'landscape';
-    /** 屏幕宽度，单位px */
-    screenWidth: number;
-    /** 屏幕高度，单位px */
-    screenHeight: number;
-    /** 可使用窗口宽度，单位px */
-    windowWidth: number;
-    /** 可使用窗口高度，单位px */
-    windowHeight: number;
-}
-
 /** 小程序组件属性类型 */
 export type MpPropType =
     | typeof String
