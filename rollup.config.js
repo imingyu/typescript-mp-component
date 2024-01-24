@@ -69,6 +69,7 @@ module.exports = {
             name: 'buildDoneExecScript',
             closeBundle() {
                 delete pkgJSON.devDependencies;
+                delete pkgJSON.scripts;
                 writeFileSync(path.resolve(__dirname, './dist/package.json'), JSON.stringify(pkgJSON, null, 4), 'utf8');
             }
         }

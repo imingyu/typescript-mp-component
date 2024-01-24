@@ -1,10 +1,10 @@
 {
     "name": "typescript-mp-component",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "使用TypeScript开发小程序组件，让自动补全更智能",
     "main": "cjs/index.js",
     "module": "esm/index.js",
-    "types": "dts/index.d.ts",
+    "types": "esm/index.d.ts",
     "scripts": {
         "prepare": "husky install",
         "lint:es": "eslint \"./src\" \"./scripts\" \"./test\"",
