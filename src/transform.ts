@@ -4,6 +4,13 @@ import { MpComponent } from './class';
 import type { AnyFunction, MpViewEachResult, MpViewMixinTodoResult, MpViewTodoResult } from './types';
 import { isEmptyObject } from './util';
 
+const pageLifeTimes: Record<string, string> = {
+    onPageLifeShow: 'show',
+    onPageLifeHide: 'hide',
+    onPageLifeResize: 'resize',
+    onPageLifeRouteDone: 'routeDone'
+};
+
 const eachObject = <T = any, K extends keyof T = keyof T>(obj: T, handler: (key: K, val: T[K]) => void) => {
     Object.getOwnPropertyNames(obj).forEach((k) => {
         const v = (obj as any)[k];
@@ -123,11 +130,16 @@ const eachViewPrototype = (vm: MpView, lifeNames: string[]): MpViewEachResult =>
 
 const mergeMethods = (source: Record<string, AnyFunction[]>): Record<string, AnyFunction> => {
     return Object.keys(source).reduce((sum: Record<string, AnyFunction>, k) => {
+        if (!Array.isArray(source[k])) {
+            return sum;
+        }
         sum[k] = function (...args) {
             let output;
             // eslint-disable-next-line prefer-rest-params
             source[k].forEach((fun) => {
-                output = fun.apply(this, args);
+                if (typeof fun === 'function') {
+                    output = fun.apply(this, args);
+                }
             });
             return output;
         };
@@ -159,6 +171,23 @@ const convertToViewConfig = (eachResult: MpViewTodoResult, isComponent = false) 
         });
     }
 
+    // 处理page life
+    const pageLifetimesOptions: Record<string, AnyFunction> = {};
+    if (isComponent) {
+        const pageLifeMethods: Record<string, AnyFunction[]> = {};
+        Object.keys(pageLifeTimes).forEach((k) => {
+            pageLifeMethods[k] = eachResult.methods[k];
+            delete eachResult.methods[k];
+        });
+        const sourcePageLifetimes = mergeMethods(pageLifeMethods);
+        Object.keys(sourcePageLifetimes).forEach((k) => {
+            pageLifetimesOptions[pageLifeTimes[k]] = sourcePageLifetimes[k];
+        });
+        if (!isEmptyObject(pageLifetimesOptions)) {
+            config.pageLifetimes = pageLifetimesOptions;
+        }
+    }
+
     // 处理函数
     const methods = mergeMethods(eachResult.methods);
     const lifetimes = mergeMethods(eachResult.lifes);
@@ -172,24 +201,33 @@ const convertToViewConfig = (eachResult: MpViewTodoResult, isComponent = false) 
 };
 
 const toViewConfig = (spec: MpPage | MpComponent) => {
-    const lifeNames =
-        spec instanceof MpComponent
-            ? ['created', 'attached', 'ready', 'moved', 'detached', 'error']
-            : ['onLoad', 'onShow', 'onReady', 'onHide', 'onUnload'];
+    const isComponent = spec instanceof MpComponent;
+    const lifeNames = isComponent
+        ? ['created', 'attached', 'ready', 'moved', 'detached', 'error']
+        : ['onLoad', 'onShow', 'onReady', 'onHide', 'onUnload'];
     const mixins = eachViewMixins(spec, lifeNames);
     const mixinMethods = mixins.mixinMethods;
     mixins.methods = {};
 
     const res = mergeEachResult(mixins, eachViewPrototype(spec, lifeNames));
+
     if (spec.$mx) {
+        const mixinPageLifes: Record<string, AnyFunction[]> = {};
         const finalMethodKeys = Object.keys(res.methods);
         Object.keys(mixinMethods).forEach((name) => {
             const currentMixMethodKeys = Object.keys(mixinMethods[name]);
-            const repeatMethodName = currentMixMethodKeys.find((k) => finalMethodKeys.includes(k));
+            const repeatMethodName = currentMixMethodKeys.find(
+                (k) => finalMethodKeys.includes(k) && (isComponent ? !(k in pageLifeTimes) : true)
+            );
             if (repeatMethodName) {
                 throw new Error(`自身方法名(${repeatMethodName})与Mixin($mx.${name})中的方法名重复，请修改!`);
             }
             currentMixMethodKeys.forEach((k) => {
+                if (isComponent && k in pageLifeTimes) {
+                    mixinPageLifes[k] = mixinPageLifes[k] || [];
+                    mixinPageLifes[k].push(mixinMethods[name][k]);
+                    return;
+                }
                 if (k in res.methods) {
                     throw new Error(`$mx.${name}中的${k}方法与已创建的方法名重复，请修改!`);
                 }
@@ -210,6 +248,13 @@ const toViewConfig = (spec: MpPage | MpComponent) => {
                 this.$mx[name] = this;
             });
         });
+
+        // 把mixin的page life方法放到最前面
+        isComponent &&
+            Object.keys(mixinPageLifes).forEach((k) => {
+                res.methods[k] = res.methods[k] || [];
+                res.methods[k].unshift(...mixinPageLifes[k]);
+            });
     }
     return convertToViewConfig(res, spec instanceof MpComponent);
 };
