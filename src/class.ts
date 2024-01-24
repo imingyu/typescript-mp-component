@@ -5,13 +5,11 @@ import type {
     MpComponentProperties,
     MpComponentTriggerEventOption,
     MpPageInstance,
-    MpViewInstance,
-    MpViewSelectorQuery
+    MpViewInstance
 } from './types';
 
 export abstract class MpView<D extends object = any> implements MpViewInstance<D> {
     setData!: (data: Partial<D>, callback?: (() => void) | undefined) => void;
-    createSelectorQuery!: () => MpViewSelectorQuery;
     selectOwnerComponent!: <T extends MpViewInstance<any>>() => T;
     selectComponent!: <T extends MpViewInstance<any>>(selector: string) => T | undefined;
     selectAllComponents!: <T extends MpViewInstance<any>>(selector: string) => T[];

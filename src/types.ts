@@ -1,7 +1,5 @@
 export type AnyFunction = (...args: any[]) => any;
 
-export type MpPageCoreLife = 'onLoad' | 'onShow' | 'onHide' | 'onUnload' | 'onReady';
-
 /** 小程序页面resize信息 */
 export interface MpPageResizeInfo {
     /** 设备方向, portrait=竖屏，landscape=横屏 */
@@ -60,45 +58,6 @@ export interface MpComponentOptions {
     virtualHost?: boolean;
 }
 
-/** 小程序boundingClientRect查询后返回的信息 */
-export interface MpBoundingClientRectResult {
-    /** 节点的 ID */
-    id: string;
-    /** 节点的 dataset */
-    dataset: any;
-    /** 节点的上边界坐标 */
-    top: number;
-    /** 节点的右边界坐标 */
-    right: number;
-    /** 节点的下边界坐标 */
-    bottom: number;
-    /** 节点的左边界坐标 */
-    left: number;
-    /** 节点的宽度 */
-    width: number;
-    /** 节点的高度 */
-    height: number;
-}
-
-/** 用于获取 WXML 节点信息的对象 */
-export interface MpViewNodesRef<T = MpBoundingClientRectResult> {
-    /** 获取节点的相关信息。需要获取的字段在fields中指定。返回值是 nodesRef 对应的 selectorQuery */
-    fields: (fields: any, callback: () => void) => MpViewSelectorQuery;
-    /** 添加节点的布局位置的查询请求。相对于显示区域，以像素为单位。其功能类似于 DOM 的 getBoundingClientRect。返回 NodesRef 对应的 SelectorQuery。 */
-    boundingClientRect: (callback: (ret: T) => void) => void;
-}
-/** 查询小程序节点信息的对象 */
-export interface MpViewSelectorQuery {
-    /** 在当前页面下选择第一个匹配选择器 `selector` 的节点。返回一个 `NodesRef` 对象实例，可以用于获取节点信息。 */
-    select: (selector: string) => MpViewNodesRef;
-    /** 在当前页面下选择匹配选择器 selector 的所有节点。 */
-    selectAll: (selector: string) => MpViewNodesRef<MpBoundingClientRectResult[]>;
-    /** 选择显示区域。可用于获取显示区域的尺寸、滚动位置等信息。 */
-    selectViewport: () => MpViewNodesRef;
-    /** 执行所有的请求。请求结果按请求次序构成数组，在callback的第一个参数中返回。 */
-    exec: (callback?: (res: any[]) => void) => MpViewNodesRef;
-}
-
 export interface MpViewInstance<D extends object = any> {
     /** 数据对象，只读，修改只可以通过setData进行修改 */
     readonly data: D;
@@ -116,8 +75,6 @@ export interface MpViewInstance<D extends object = any> {
     setData: (data: Partial<D>, callback?: () => void) => void;
     /** 返回页面标识符（一个字符串），可以用来判断几个自定义组件实例是不是在同一个页面内 */
     getPageId: () => string;
-    /** 创建一个 SelectorQuery 对象，选择器选取范围在组件实例内 */
-    createSelectorQuery: () => MpViewSelectorQuery;
     /** 选取当前组件节点所在的组件实例（即组件的引用者），返回它的组件实例对象（会被 wx://component-export 影响） */
     selectOwnerComponent: <T extends MpViewInstance>() => T;
     /** 使用选择器选择组件实例节点，返回匹配到的第一个组件实例对象（会被 wx://component-export 影响） */
@@ -142,11 +99,6 @@ export interface MpComponentTriggerEventOption {
      * 默认值： `false`
      */
     capturePhase?: boolean;
-}
-
-export interface MpWMComponentPageLifetimes<C extends MpComponentInstance = any> {
-    show?: (this: C) => void;
-    hide?: (this: C) => void;
 }
 
 /** 小程序组件实例对象 */
