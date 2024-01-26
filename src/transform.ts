@@ -22,6 +22,8 @@ const eachObject = <T = any, K extends keyof T = keyof T>(obj: T, handler: (key:
 
 const eachView = (vm: MpView, res: MpViewEachResult, lifeNames: string[]) => {
     const isComponent = vm instanceof MpComponent;
+    const other: any = {};
+    let hasOther;
     eachObject(vm, (k, v) => {
         if (k === 'data' || (isComponent && (k as any) === 'initData')) {
             res.data.push(v);
@@ -39,8 +41,10 @@ const eachView = (vm: MpView, res: MpViewEachResult, lifeNames: string[]) => {
             }
             return;
         }
-        res.other.push(v);
+        hasOther = true;
+        other[k] = v;
     });
+    hasOther && res.other.push(other);
 };
 
 const mergeEachResult = (target: MpViewTodoResult, source: MpViewEachResult): MpViewTodoResult => {
@@ -159,16 +163,30 @@ const convertToViewConfig = (eachResult: MpViewTodoResult, isComponent = false) 
 
     // 处理other
     if (eachResult.other.length) {
+        const configKeys = ['behaviors', 'properties', 'options'];
         const finalOther = Object.assign.apply(null, [{}, ...eachResult.other]);
-        const initLifeName = isComponent ? 'created' : 'onLoad';
-        eachResult.lifes[initLifeName] = eachResult.lifes[initLifeName] || [];
-        eachResult.lifes[initLifeName].unshift(function (this: any) {
-            if (this.__tmcOtherInjected__) {
-                return;
+        let configOther: any;
+        configKeys.forEach((k) => {
+            if (k in finalOther) {
+                configOther = configOther || {};
+                configOther[k] = finalOther[k];
+                delete finalOther[k];
             }
-            this.__tmcOtherInjected__ = true;
-            Object.assign(this, finalOther);
         });
+        if (configOther) {
+            Object.assign(config, configOther);
+        }
+        if (!isEmptyObject(finalOther)) {
+            const initLifeName = isComponent ? 'created' : 'onLoad';
+            eachResult.lifes[initLifeName] = eachResult.lifes[initLifeName] || [];
+            eachResult.lifes[initLifeName].unshift(function (this: any) {
+                if (this.__tmcOtherInjected__) {
+                    return;
+                }
+                this.__tmcOtherInjected__ = true;
+                Object.assign(this, finalOther);
+            });
+        }
     }
 
     // 处理page life
