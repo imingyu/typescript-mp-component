@@ -13,6 +13,7 @@ export type MpPropType =
 /** 小程序组件属性 */
 export interface MpComponentProp<T = any, C extends MpComponentInstance = any> {
     type: MpPropType;
+    optionalTypes?: MpPropType[];
     value?: T;
     observer?: (this: C, oldVal: T, newVal: T) => void;
 }

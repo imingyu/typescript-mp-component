@@ -163,19 +163,28 @@ const convertToViewConfig = (eachResult: MpViewTodoResult, isComponent = false) 
 
     // 处理other
     if (eachResult.other.length) {
-        const configKeys = ['behaviors', 'properties', 'options'];
+        const configKeys = ['behaviors', 'properties', 'options', 'observers', 'relations', 'externalClasses'];
         const finalOther = Object.assign.apply(null, [{}, ...eachResult.other]);
-        let configOther: any;
+
+        // 处理behaviors、properties、options等
+        const configOther: any = {};
         configKeys.forEach((k) => {
             if (k in finalOther) {
-                configOther = configOther || {};
-                configOther[k] = finalOther[k];
                 delete finalOther[k];
             }
+            eachResult.other.forEach((item) => {
+                if (k in item) {
+                    configOther[k] = configOther[k] || (k === 'behaviors' || k === 'externalClasses' ? [] : {});
+                    if (k === 'behaviors' || k === 'externalClasses') {
+                        configOther[k].push(item[k]);
+                    } else {
+                        Object.assign(configOther[k], item[k]);
+                    }
+                }
+            });
         });
-        if (configOther) {
-            Object.assign(config, configOther);
-        }
+        Object.assign(config, configOther);
+
         if (!isEmptyObject(finalOther)) {
             const initLifeName = isComponent ? 'created' : 'onLoad';
             eachResult.lifes[initLifeName] = eachResult.lifes[initLifeName] || [];

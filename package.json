@@ -1,6 +1,6 @@
 {
     "name": "typescript-mp-component",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "使用TypeScript开发小程序组件，让自动补全更智能",
     "main": "cjs/index.js",
     "module": "esm/index.js",
