@@ -1,6 +1,6 @@
 {
     "name": "typescript-mp-component",
-    "version": "0.0.5",
+    "version": "0.1.0",
     "description": "使用TypeScript开发小程序组件，让自动补全更智能",
     "main": "cjs/index.js",
     "module": "esm/index.js",
@@ -20,10 +20,8 @@
         "name": "imingyu",
         "email": "mingyuhisoft@163.com"
     },
-    "dependencies": {
-        "typescript": "^5.2.2"
-    },
     "devDependencies": {
+        "typescript": "^5.2.2",
         "@babel/core": "^7.22.9",
         "@babel/preset-env": "^7.22.9",
         "@rollup/plugin-babel": "^6.0.3",
